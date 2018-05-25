@@ -7,109 +7,75 @@ public class SwerveDriveBase extends RobotDriveBase {
   private final double SPEED_DEADZONE = 0.05;
   private final double TURN_DEADZONE = 0.05;
 
-  SwerveModule frontLeft, frontRight, backLeft, backRight;
+  //In inches
+  private double LENGTH = 24;
+  private double WIDTH = 24;
 
-  public SwerveDriveBase (SwerveModule frontLeft, SwerveModule frontRight, SwerveModule backLeft, SwerveModule backRight) {
+  private SwerveModule frontLeft, frontRight, backLeft, backRight;
+
+  private boolean fieldRelative = false;
+
+  public SwerveDriveBase(SwerveModule frontLeft, SwerveModule frontRight, SwerveModule backLeft, SwerveModule backRight) {
     this.frontLeft = frontLeft;
     this.frontRight = frontRight;
     this.backLeft = backLeft;
+    this.backRight = backRight;
+  }
+
+  public SwerveDriveBase(SwerveModule frontLeft, SwerveModule frontRight, SwerveModule backLeft,
+      SwerveModule backRight, double length, double width) {
+
+    this.frontLeft = frontLeft;
     this.frontRight = frontRight;
+    this.backLeft = backLeft;
+    this.backRight = backRight;
+
+    setLength(length);
+    setWidth(width);
   }
 
-  public void move(double x, double y, double turn) {
-    double[] angleSpeed = calculateAngleSpeed(x, y);
-    double angle = angleSpeed[0];
-    double speed = angleSpeed[1];
-
-    double speedFL, speedFR, speedBL, speedBR;
-    double angleFL, angleFR, angleBL, angleBR;
-
-    if (speed < SPEED_DEADZONE && turn > TURN_DEADZONE) {
-      //turn in place
-
-      speedFL = Math.abs(turn);
-      speedFR = Math.abs(turn);
-      speedBL = Math.abs(turn);
-      speedBR = Math.abs(turn);
-
-      double turnMod = turn > 0 ? 0 : 180;
-
-      angleFL = 45 + turnMod;
-      angleFR = 135 + turnMod;
-      angleBL = 225 - turnMod;
-      angleBR = 315 - turnMod;
-
-      frontLeft.setSpeed(speedFL);
-      frontLeft.goToAngle(angleFL);
-      frontRight.setSpeed(speedFR);
-      frontRight.goToAngle(angleFR);
-      backLeft.setSpeed(speedBL);
-      backLeft.goToAngle(angleBL);
-      backRight.setSpeed(speedBR);
-      backRight.goToAngle(angleBR);
-
-    } else if (speed > SPEED_DEADZONE && turn > TURN_DEADZONE) {
-      //turn in motion
-
-
-    } else if (speed > SPEED_DEADZONE && turn < TURN_DEADZONE) {
-      //move w/o turn
-
-      frontLeft.setSpeed(speed);
-      frontLeft.goToAngle(angle);
-      frontRight.setSpeed(speed);
-      frontRight.goToAngle(angle);
-      backLeft.setSpeed(speed);
-      backLeft.goToAngle(angle);
-      backRight.setSpeed(speed);
-      backRight.goToAngle(angle);
-
-    } else {
-      frontLeft.setSpeed(0);
-      frontRight.setSpeed(0);
-      backLeft.setSpeed(0);
-      backRight.setSpeed(0);
-
-    }
-
-
+  public void setLength(double length) {
+    LENGTH = length;
   }
 
-  private double[] calculateAngleSpeed(double x, double y) {
-    double angle, speed;
+  public void setWidth(double width) {
+    WIDTH = width;
+  }
 
-    if (x == 0 && y == 0) {
-      speed = 0;
-      angle = 0;
-    } else if (x == 0 && y < 0) {
-      speed = -y;
-      angle = 180;
-    } else if (x == 0 && y > 0) {
-      speed = y;
-      angle = 0;
-    } else if (x < 0 && y == 0) {
-      speed = x;
-      angle = 270;
-    } else if (x < 0 && y < 0) {
-      speed = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-      angle = Math.atan(-y/-x);
-    } else if (x < 0 && y > 0) {
-      speed = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-      angle = Math.atan(y/-x);
-    } else if (x > 0 && y == 0) {
-      speed = x;
-      angle = 90;
-    } else if (x > 0 && y < 0) {
-      speed = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-      angle = Math.atan(-y/x);
-    } else {
-      speed = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-      angle = Math.atan(y/x);
-    }
+  public void drive(double x, double y, double turn) {
+    drive(x, y, turn, 0);
+  }
 
-    double[] out = {angle, speed};
+  public void drive(double x, double y, double turn, double angle) {
+    double r = Math.sqrt((LENGTH * LENGTH) + (WIDTH * WIDTH));
+    y *= -1;
 
-    return out;
+    double a = x - turn * (LENGTH / r);
+    double b = x + turn * (LENGTH / r);
+    double c = y - turn * (WIDTH / r);
+    double d = y + turn * (WIDTH / r);
+
+    double backRightSpeed = Math.sqrt(Math.pow(a, 2) + Math.pow(d, 2));
+    double backLeftSpeed = Math.sqrt(Math.pow(a, 2) + Math.pow(c, 2));
+    double frontRightSpeed = Math.sqrt(Math.pow(b, 2) + Math.pow(d, 2));
+    double frontLeftSpeed = Math.sqrt(Math.pow(b, 2) + Math.pow(c, 2));
+
+    double backRightAngle = Math.atan2(a, d) / Math.PI * 180;
+    backRightAngle = ((backRightAngle < 0 ? 360 + backRightAngle : backRightAngle) - angle) % 360;
+
+    double backLeftAngle = Math.atan2(a, c) / Math.PI * 180;
+    backLeftAngle = ((backLeftAngle < 0 ? 360 + backLeftAngle : backLeftAngle) - angle) % 360;
+
+    double frontRightAngle = Math.atan2(b, d) / Math.PI * 180;
+    frontRightAngle = ((frontRightAngle < 0 ? 360 + frontRightAngle : frontRightAngle) - angle) % 360;
+
+    double frontLeftAngle = Math.atan2(b, c) / Math.PI * 180;
+    frontLeftAngle = ((frontLeftAngle < 0 ? 360 + frontLeftAngle : frontLeftAngle) - angle) % 360;
+
+    frontLeft.set(frontLeftSpeed, frontLeftAngle);
+    frontRight.set(frontRightSpeed, frontRightAngle);
+    backLeft.set(backLeftSpeed, backLeftAngle);
+    backRight.set(backRightSpeed, backRightAngle);
   }
 
   @Override

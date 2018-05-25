@@ -11,7 +11,6 @@ public class SwerveModule {
   private SpeedController speedController;
   private double pulsesPerDegree;
 
-
   public SwerveModule(WPI_TalonSRX angleController, SpeedController speedController) {
     this.angleController = angleController;
     this.speedController = speedController;
@@ -22,6 +21,13 @@ public class SwerveModule {
     double targetAngle = getCurrentAngle() + (turnRight ? setpoint : -setpoint);
 
     angleController.set(ControlMode.Position, targetAngle);
+  }
+
+  public void PIDF(double p, double i, double d, double f) {
+    angleController.config_kP(0, p, 0);
+    angleController.config_kI(0, i, 0);
+    angleController.config_kD(0, d, 0);
+    angleController.config_kF(0, f, 0);
   }
 
   public void setPPR(double PPR) {
@@ -54,6 +60,23 @@ public class SwerveModule {
 
   public void setCurrentAngle(double angle) {
     angleController.setSelectedSensorPosition((int) (angle * pulsesPerDegree), 0, 0);
+  }
+
+  public void setInverted(boolean inverted) {
+    speedController.setInverted(inverted);
+  }
+
+  public boolean getInverted() {
+    return speedController.getInverted();
+  }
+
+  public void reverse() {
+    setInverted(!getInverted());
+  }
+
+  public void set(double speed, double angle) {
+    setSpeed(speed);
+    goToAngle(angle);
   }
 
 }
