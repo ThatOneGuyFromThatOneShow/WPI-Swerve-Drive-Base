@@ -49,7 +49,12 @@ public class SwerveDriveBase extends RobotDriveBase {
   public void drive(double x, double y, double turn, double angle) {
     double r = Math.sqrt((LENGTH * LENGTH) + (WIDTH * WIDTH));
     y *= -1;
-
+    
+    // Rotated X input
+    x = angle != 0 ? (x * Math.cos(Math.toRadians(angle))) - (y * Math.sin(Math.toRadians(angle))) : x;
+		// Rotated Y input
+		y = angle != 0 ? (x * Math.sin(angle)) + (y * Math.cos(angle)) : y;
+    
     double a = x - turn * (LENGTH / r);
     double b = x + turn * (LENGTH / r);
     double c = y - turn * (WIDTH / r);
@@ -61,16 +66,9 @@ public class SwerveDriveBase extends RobotDriveBase {
     double frontLeftSpeed = Math.sqrt(Math.pow(b, 2) + Math.pow(c, 2));
 
     double backRightAngle = Math.atan2(a, d) / Math.PI * 180;
-    backRightAngle = ((backRightAngle < 0 ? 360 + backRightAngle : backRightAngle) - angle) % 360;
-
     double backLeftAngle = Math.atan2(a, c) / Math.PI * 180;
-    backLeftAngle = ((backLeftAngle < 0 ? 360 + backLeftAngle : backLeftAngle) - angle) % 360;
-
     double frontRightAngle = Math.atan2(b, d) / Math.PI * 180;
-    frontRightAngle = ((frontRightAngle < 0 ? 360 + frontRightAngle : frontRightAngle) - angle) % 360;
-
     double frontLeftAngle = Math.atan2(b, c) / Math.PI * 180;
-    frontLeftAngle = ((frontLeftAngle < 0 ? 360 + frontLeftAngle : frontLeftAngle) - angle) % 360;
 
     frontLeft.set(frontLeftSpeed, frontLeftAngle);
     frontRight.set(frontRightSpeed, frontRightAngle);
