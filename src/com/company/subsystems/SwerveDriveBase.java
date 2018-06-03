@@ -52,8 +52,8 @@ public class SwerveDriveBase extends RobotDriveBase {
     
     // Rotated X input
     x = angle != 0 ? (x * Math.cos(Math.toRadians(angle))) - (y * Math.sin(Math.toRadians(angle))) : x;
-		// Rotated Y input
-		y = angle != 0 ? (x * Math.sin(angle)) + (y * Math.cos(angle)) : y;
+    // Rotated Y input
+    y = angle != 0 ? (x * Math.sin(angle)) + (y * Math.cos(angle)) : y;
     
     double a = x - turn * (LENGTH / r);
     double b = x + turn * (LENGTH / r);
